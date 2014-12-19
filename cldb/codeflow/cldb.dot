@@ -1,0 +1,33 @@
+digraph G {
+	compound = false;
+	fontname = "Courier";
+	node [shape="box",style="rounded"];
+
+	subgraph cluster_0 {
+		label = "ReplicationManager.java";
+		style = "filled";
+
+		createCopyOnServer;
+		checkForNewCLDBs -> createExtraCopy;
+		HandleCriticallyUnderReplicated -> createExtraCopy;
+		HandleUnderReplicated -> createExtraCopy;
+	}
+
+	subgraph cluster_1 {
+		label = "Containers.java"
+
+		containerCreateCopyA -> containerCreateCopyB;
+		containerCreateCopyA[label = "containerCreateCopy(cid, size, volInfo)"];
+		containerCreateCopyB[label = "containerCreateCopyB(cid, size, topology, volProps, status)"];
+	}
+
+	subgraph cluster_2 {
+		label = "CLDBServer.java"
+
+		reReplicateCLDBVolume[label="reReplicateCLDBVolume"]		
+	}
+
+	createCopyOnServer -> containerCreateCopyB;
+	createExtraCopy -> containerCreateCopyA;
+	reReplicateCLDBVolume -> containerCreateCopyB;
+}
