@@ -1,0 +1,9 @@
+digraph cldbClasses {
+	node[shape=record,style=filled,fillcolor=gray95]
+	edge[dir=back, arrowtail=empty]
+
+	TableRootCidPlacementPolicy -> DefaultContainerPlacementPolicy;
+
+DefaultContainerPlacementPolicy[label = "{DefaultContainerPlacementPolicy |
+	    o selectReplicaForReReplication}"]
+}
