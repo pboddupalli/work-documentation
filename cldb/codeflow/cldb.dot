@@ -7,10 +7,22 @@ digraph G {
 		label = "ReplicationManager.java";
 		style = "filled";
 
-		createCopyOnServer;
+		HandlerMasterMissing -> createCopyOnServer;
+		run -> checkForNewCLDBs;
+		run -> checkAllContainersReplication -> checkContainerReplicationState;
 		checkForNewCLDBs -> createExtraCopy;
 		HandleCriticallyUnderReplicated -> createExtraCopy;
 		HandleUnderReplicated -> createExtraCopy;
+		checkReplicationQueuesB -> getContainerReplicationState;
+		checkReplicationQueuesB -> replClass;
+		replClass -> HandlerMasterMissing;
+		replClass -> HandleCriticallyUnderReplicated;
+		replClass -> HandleUnderReplicated;
+
+		run -> checkReplicationQueues;
+		checkReplicationQueues -> checkReplicationQueuesB;
+		checkReplicationQueuesB[label="checkReplicationQueues(\ncidList, replPriority, numToProcess"];
+		replClass[label="replClass{}"];
 	}
 
 	subgraph cluster_1 {
