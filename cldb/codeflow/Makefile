@@ -12,7 +12,7 @@ cldb-classes:
 all: disk-balancer cldb cldb-classes
 
 distclean:
-	rm -rf *~ *.pdf
+	rm -rf *.pdf
 
 squeakyclean: distclean
 	rm -rf *~

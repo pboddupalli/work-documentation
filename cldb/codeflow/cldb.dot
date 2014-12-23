@@ -9,7 +9,7 @@ digraph G {
 
 		HandlerMasterMissing -> createCopyOnServer;
 		run -> checkForNewCLDBs;
-		run -> checkAllContainersReplication -> checkContainerReplicationState;
+		run -> checkAllContainersReplication -> checkContainerReplicationState -> getContainerReplicationState;
 		checkForNewCLDBs -> createExtraCopy;
 		HandleCriticallyUnderReplicated -> createExtraCopy;
 		HandleUnderReplicated -> createExtraCopy;
@@ -18,6 +18,10 @@ digraph G {
 		replClass -> HandlerMasterMissing;
 		replClass -> HandleCriticallyUnderReplicated;
 		replClass -> HandleUnderReplicated;
+		reReplicateContainersFromFileServer -> reReplicateContainersOnStoragePoolsFromFileServer;
+
+		reReplicateContainersFromFileServer[label="reReplicateContainersFromFileServer(*)"];
+		reReplicateContainersOnStoragePoolsFromFileServer[label="reReplicateContainersOnStoragePoolsFromFileServer(*)"];
 
 		run -> checkReplicationQueues;
 		checkReplicationQueues -> checkReplicationQueuesB;
@@ -39,7 +43,17 @@ digraph G {
 		reReplicateCLDBVolume[label="reReplicateCLDBVolume"]		
 	}
 
+	subgraph cluster_3 {
+		label = "Topology.java";
+
+		reReplicateFileServer;
+		reReplicateStoragePools;
+	}
+
 	createCopyOnServer -> containerCreateCopyB;
 	createExtraCopy -> containerCreateCopyA;
 	reReplicateCLDBVolume -> containerCreateCopyB;
+
+	reReplicateFileServer -> reReplicateContainersFromFileServer;
+	reReplicateStoragePools -> reReplicateContainersOnStoragePoolsFromFileServer;
 }
