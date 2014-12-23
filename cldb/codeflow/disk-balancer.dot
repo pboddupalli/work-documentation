@@ -1,0 +1,54 @@
+digraph G {
+	compound = false;
+	fontname = "Courier";
+	node [shape="box",style="rounded"];
+
+	subgraph cluster_0 {
+		label = "DiskBalancer.java";
+		style = "filled";
+
+		moveContainerFromSp -> canMoveContainer [label="1"];
+		checkStoragePools -> moveSomeContainersFromSp;
+
+		moveSomeContainersFromSp -> canMoveContainer [label="1"];
+		moveSomeContainersFromSp -> setInTransit [label="3"];
+
+		moveContainerFromSp[label="moveContainerFromSp(*)"];
+	}
+
+	subgraph cluster_1 {
+		label = "Containers.java";
+
+		containerMoveReplica1[label="containerMoveReplica"];
+		containerMoveFrom -> containerMove;
+
+		containerMoveFrom[label="containerMoveFrom\nretval=destination fileserver"];
+	}
+
+	subgraph cluster_2 {
+		label = "CLDBServer.java"
+
+		processRpc -> containerMoveReplica2;
+
+		containerMoveReplica2[label="containerMoveReplica"];
+	}
+
+	subgraph cluster_3 {
+		label = "StoragePool.java"
+
+		addOutTransitContainer;
+	}
+
+	subgraph cluster_4 {
+		label = "DefaultContainerPlacementPolicy.java";
+
+		selectReplicaForRerepl;
+	}
+
+	containerMoveReplica2 -> containerMoveReplica1 -> moveContainerFromSp;
+	moveContainerFromSp -> containerMove [label="2"];
+	setInTransit -> addOutTransitContainer;
+
+	moveSomeContainersFromSp -> containerMoveFrom [label="2"];
+	containerMove -> selectReplicaForRerepl;
+}
