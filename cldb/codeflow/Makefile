@@ -9,7 +9,10 @@ cldb:
 cldb-classes:
 	dot -Tpdf cldb-classes.dot > cldb-classes.pdf
 
-all: disk-balancer cldb cldb-classes
+topology:
+	dot -Tpdf topology.dot > topology.pdf
+
+all: disk-balancer cldb cldb-classes topology
 
 distclean:
 	rm -rf *.pdf
