@@ -10,4 +10,11 @@ digraph G {
 		balanceDataContainerRolesForVolume -> increaseDataContainerTailsOnServer;
 		balanceNameContainerRoles -> reduceNameContainerMastersOnServer;
 	}
+
+	subgraph cluster_1 {
+		label = "Containers.java";
+		style = "filled";
+		makeTailReplica;
+	}
+	increaseDataContainerTailsOnServer -> makeTailReplica;
 }
