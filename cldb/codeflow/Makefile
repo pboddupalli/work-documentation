@@ -1,18 +1,9 @@
 default:
 
-disk-balancer:
-	dot -Tpdf disk-balancer.dot > disk-balancer.pdf
+disk-balancer cldb cldb-classes topology container-delete RoleBalancer:
+	dot -Tpdf $@.dot > $@.pdf
 
-cldb:
-	dot -Tpdf cldb.dot > cldb.pdf
-
-cldb-classes:
-	dot -Tpdf cldb-classes.dot > cldb-classes.pdf
-
-topology:
-	dot -Tpdf topology.dot > topology.pdf
-
-all: disk-balancer cldb cldb-classes topology
+all: disk-balancer cldb cldb-classes topology container-delete RoleBalancer
 
 distclean:
 	rm -rf *.pdf

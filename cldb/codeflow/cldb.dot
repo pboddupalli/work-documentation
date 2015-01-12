@@ -9,7 +9,6 @@ digraph G {
 
 		HandlerMasterMissing -> createCopyOnServer;
 		run -> checkForNewCLDBs;
-		run -> checkAllContainersReplication -> checkContainerReplicationState -> getContainerReplicationState;
 		checkForNewCLDBs -> createExtraCopy;
 		HandleCriticallyUnderReplicated -> createExtraCopy;
 		HandleUnderReplicated -> createExtraCopy;
@@ -27,33 +26,75 @@ digraph G {
 		checkReplicationQueues -> checkReplicationQueuesB;
 		checkReplicationQueuesB[label="checkReplicationQueues(\ncidList, replPriority, numToProcess"];
 		replClass[label="replClass{}"];
+		getActiveContainerCopyCreates;
+		addContainer;
 	}
+	
+	subgraph cluster_ReplScannerThread {
+		label = "ReplicationScannerThread";
+		checkAllContainersReplication -> checkContainerReplicationState;		
+	}
+	checkContainerReplicationState -> getContainerReplicationState;
+	checkContainerReplicationState -> addContainer;
 
 	subgraph cluster_1 {
-		label = "Containers.java"
+		label = "Containers.java";
 
-		containerCreateCopyA -> containerCreateCopyB;
+		containerCreateCopyA -> containerCreateCopyB -> containerCreateCopyInternalLocked;
 		containerCreateCopyA[label = "containerCreateCopy(cid, size, volInfo)"];
-		containerCreateCopyB[label = "containerCreateCopyB(cid, size, topology, volProps, status)"];
+		containerCreateCopyB[label = "containerCreateCopy(cid, size, topology, volProps, status)"];
+		containerMoveFrom -> containerMove;
+		containerMoveReplica;
+		missingContainersReReplicate;
 	}
 
 	subgraph cluster_2 {
-		label = "CLDBServer.java"
-
-		reReplicateCLDBVolume[label="reReplicateCLDBVolume"]		
+		label = "CLDBServer.java";
+		reReplicateCLDBVolume[label="reReplicateCLDBVolume"];
+		containerCreate -> selectServers;
+		selectServersAndCreateContainer;
+		processRpc;
+		chooseMasterAndAssignForTablet;
+		getActiveContainerCopyCreatesCLDB;
 	}
 
 	subgraph cluster_3 {
 		label = "Topology.java";
+		checkHeartBeats -> reReplicateFileServer;
+		checkHeartBeats -> reReplicateStoragePools;
+		checkHeartBeats -> reReplicateTimedOutVolumes;
+		checkHeartBeats -> reReplicateTimedOutVolumesOnStoragePools;
+	}
 
-		reReplicateFileServer;
-		reReplicateStoragePools;
+        subgraph cluster_4 {
+		label = "DefaultContainerPlacementPolicy.java";
+		selectReplicaForRerepl -> selectReplicaFromLevel -> isDupSelection;
+		// selectFileServers -> selectSomeServers -> checkCandidateServer -> isDupSelection[constraint=false];
+		selectFileServers -> selectSomeServers -> checkCandidateServer -> isDupSelection;
+		selectMasterServer -> selectSomeServers;
+		selectMasterServer -> selectMasterFromPreferredList;
+	}
+
+        subgraph cluster_5 {
+		label = "DiskBalancer.java";
+		moveContainerFromSp;
+		checkStoragePools -> moveSomeContainersFromSp;		
 	}
 
 	createCopyOnServer -> containerCreateCopyB;
 	createExtraCopy -> containerCreateCopyA;
 	reReplicateCLDBVolume -> containerCreateCopyB;
-
+	containerMove -> selectReplicaForRerepl;
+	containerCreateCopyInternalLocked -> selectReplicaForRerepl;
+	
 	reReplicateFileServer -> reReplicateContainersFromFileServer;
 	reReplicateStoragePools -> reReplicateContainersOnStoragePoolsFromFileServer;
+	selectServers -> selectFileServers;
+	selectServersAndCreateContainer -> selectFileServers;
+	containerCreateCopyInternalLocked -> selectFileServers;
+	containerMoveReplica -> moveContainerFromSp -> containerMove;
+	moveSomeContainersFromSp -> containerMoveFrom;
+	processRpc -> containerMoveReplica;
+	chooseMasterAndAssignForTablet -> selectMasterServer;
+	getActiveContainerCopyCreatesCLDB -> getActiveContainerCopyCreates;	
 }
