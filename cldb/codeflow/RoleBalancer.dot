@@ -1,0 +1,13 @@
+digraph G {
+	compound = false;
+	fontname = "Courier";
+	node [shape="box",style="rounded"];
+
+	subgraph cluster_0 {
+		label = "RoleBalancer.java";
+		style = "filled";
+		balanceDataContainerRoles -> balanceDataContainerRolesForVolume -> reduceDataContainerMastersOnServer;
+		balanceDataContainerRolesForVolume -> increaseDataContainerTailsOnServer;
+		balanceNameContainerRoles -> reduceNameContainerMastersOnServer;
+	}
+}

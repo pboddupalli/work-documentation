@@ -1,0 +1,58 @@
+digraph G {
+	compound = false;
+	fontname = "Courier";
+	node [shape="box",style="rounded"];
+
+	subgraph cluster_0 {
+		label = "Containers.java";
+		deleteContainerCopiesCid -> deleteContainerCopiesCInfo;
+		containerRemove -> deleteContainerCopiesCInfo;
+		checkContainerMove -> containerReduceReplication;
+		checkContainerMove -> containerRemoveCopiedReplica;
+		subgraph cluster_4 {
+			label = "ContainerUpdateHelper";
+			deleteContainer;
+			deleteUnknownContainer;
+			deleteUnwantedReplica;
+			containerUpdateAndQueueWorkUnits -> deleteCopiesAndContainerUpdateAndQueueWorkUnitsWithoutVerification;
+			deleteCopiesAndContainerUpdateAndQueueWorkUnitsAfterVerification -> deleteCopiesAndContainerUpdateAndQueueWorkUnitsWithoutVerification;
+		}
+		//		missingContainersReReplicate -> containerRemoveLostReplica -> containerUpdateAndQueueWorkUnits [constraint = false];
+		missingContainersReReplicate -> containerRemoveLostReplica -> containerUpdateAndQueueWorkUnits;
+		containerRemoveInvalidReplica -> deleteCopiesAndContainerUpdateAndQueueWorkUnitsWithoutVerification;
+		containerCreateCopyInternalLocked -> deleteCopiesAndContainerUpdateAndQueueWorkUnitsAfterVerification;
+		containerRemoveCopiedReplica -> deleteCopiesAndContainerUpdateAndQueueWorkUnitsAfterVerification;
+		containerRemoveInvalidReplica -> deleteCopiesAndContainerUpdateAndQueueWorkUnitsAfterVerification;
+		containerRemoveUnUsedReplicas -> deleteCopiesAndContainerUpdateAndQueueWorkUnitsAfterVerification;
+		volumeFixMasters -> deleteCopiesAndContainerUpdateAndQueueWorkUnitsAfterVerification;
+	}
+
+	subgraph cluster_1 {
+		label = "DiskBalancer.java";
+		checkActiveMoves;
+	}
+
+	subgraph cluster_2 {
+		label = "CLDBServer.java";
+		processRpc -> _containerRemove;
+		processRpc -> volumeCreate;
+		_containerRemoveInvalidReplica;
+	}
+
+	subgraph cluster_3 {
+		label = "ReplicationManager.java";
+		HandleOverReplicated[label="HandleOverReplicated\n.processReplication()"];
+		checkReplicationQueues -> handleQueuedCids;
+	}
+	subgraph cluster_5 {
+		label = "FileServerWorkAllocator";
+	}
+	
+	checkActiveMoves -> checkContainerMove;
+	_containerRemove -> containerRemove;
+	volumeCreate -> containerRemove;
+	HandleOverReplicated -> containerReduceReplication;
+	HandleOverReplicated -> containerRemoveUnUsedReplicas;
+	handleQueuedCids -> containerReduceReplication;
+	_containerRemoveInvalidReplica -> containerRemoveInvalidReplica;
+}
