@@ -1,0 +1,62 @@
+digraph G {
+	rankdir=LR;	
+	compound = false;
+	fontname = "Courier";
+	node [shape="box",style="rounded"];
+
+	subgraph cluster_0 {
+		label = "FileServerWorkAllocator.java";
+		style = "filled";
+		addFileServerFSIDWorkUnit
+		[label = "addFileServerFSIDWorkUnit\n(fsId, FileServerCommand)"];
+		addVolumePropertiesWork;		
+		addFileServerWorkUnit [label = "addFileServerWorkUnit\n(spId, FileServerCommand)"];
+	}
+	
+	subgraph cluster_1 {
+		label = "Containers.java";
+		fileServerReadWriteCidMaps
+		[label = "fileServerReadWriteCidMaps\n(container report from fileserver)"];
+		fileServerVolumeList
+		[label = "fileServerVolumeList\n(volume report from fileserver)"];
+		deleteCopiesAndContainerUpdateAndQueueWorkUnitsWithoutVerification -> queueFileServerWorkUnits;
+
+		checkContainerState;		
+		subgraph cluster_containerupdater {
+			label = "Class ContainerUpdater";
+			processBecomeMasterComplete;
+			processContainerReconnect;
+			processResyncComplete;			
+			queueFileServerWorkUnits;
+			removeInvalidSnapContainers;			
+			updateSpaceUsage;			
+		}
+
+		queueMirrorCreate;
+		queueVolumePropertiesMessage;
+	}
+
+	subgraph cluster_2 {
+		label = "CLDBServer.java";		
+		volumeCreate;
+		fileServerRegister -> queueNoCompressListMessage;
+		fileServerRegister -> queueAllVolPropertiesMessage;
+		containerRemove;		
+	}
+	
+	fileServerReadWriteCidMaps -> addFileServerFSIDWorkUnit;
+	fileServerVolumeList -> addFileServerFSIDWorkUnit;
+	queueMirrorCreate -> addFileServerFSIDWorkUnit [rank="same"];
+	queueNoCompressListMessage -> addFileServerFSIDWorkUnit;
+
+	{processBecomeMasterComplete processContainerReconnect processResyncComplete queueFileServerWorkUnits} -> addFileServerWorkUnit;
+	{removeInvalidSnapContainers updateSpaceUsage} -> addFileServerWorkUnit;
+	checkContainerState -> addFileServerWorkUnit;
+	containerRemove -> addFileServerWorkUnit;
+
+	//	queueAllVolPropertiesMessage -> addVolumePropertiesWork [constraint = "false"];
+	queueAllVolPropertiesMessage -> addVolumePropertiesWork;
+	queueVolumePropertiesMessage -> addVolumePropertiesWork;	
+
+	volumeCreate -> queueMirrorCreate [constraint = "false"];
+}
