@@ -1,6 +1,7 @@
 default:
 
 disk-balancer cldb cldb-classes topology container-delete RoleBalancer:
+	dot -Tpdf $@.dot > $@.pdf
 FileServerWorkAllocator:
 	dot -Tpdf $@.dot > $@.pdf
 
